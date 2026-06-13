@@ -97,6 +97,14 @@ window.clearHistory = async () => {
   await set(historyRef, null);
 };
 
+window.toggleVoterList = () => {
+  const body = document.getElementById("voterListBody");
+  const toggle = document.getElementById("voterListToggle");
+  const open = body.style.display === "none";
+  body.style.display = open ? "block" : "none";
+  toggle.textContent = open ? "▼ 閉じる" : "▶ 表示";
+};
+
 window.toggleAnonymous = async () => {
   if (!currentVote.id) return;
   const anon = document.getElementById("anonymousCheck").checked;
@@ -409,8 +417,14 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-seri
 .bar-pct{font-size:12px;font-family:'DM Mono',monospace;color:var(--muted);width:32px;text-align:right;}
 
 /* Voter list card */
-.voter-list-card{background:var(--card);border-radius:16px;padding:22px 28px;
-  margin-top:24px;border:1px solid var(--border);}
+.voter-list-card{background:var(--card);border-radius:16px;
+  margin-top:24px;border:1px solid var(--border);overflow:hidden;}
+.voter-list-header{display:flex;align-items:center;justify-content:space-between;
+  padding:14px 20px;cursor:pointer;user-select:none;transition:background .15s;}
+.voter-list-header:hover{background:rgba(255,255,255,.03);}
+.voter-list-toggle{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;
+  display:flex;align-items:center;gap:6px;}
+.voter-list-body{padding:0 20px 18px;}
 .voter-group{margin-bottom:10px;}
 .voter-group:last-child{margin-bottom:0;}
 .voter-group-label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
@@ -586,9 +600,16 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-seri
 
       <!-- Voter list -->
       <div class="voter-list-card">
-        <div class="section-label" style="margin-bottom:14px;">投票者リスト — リアルタイム</div>
-        <div id="voterListEl">
-          <div style="color:var(--muted);font-size:12px;">まだ誰も投票していません</div>
+        <div class="voter-list-header" onclick="toggleVoterList()">
+          <div class="section-label" style="margin-bottom:0;">投票者リスト — リアルタイム</div>
+          <div class="voter-list-toggle" id="voterListToggle">▶ 表示</div>
+        </div>
+        <div id="voterListBody" style="display:none;">
+          <div class="voter-list-body">
+            <div id="voterListEl">
+              <div style="color:var(--muted);font-size:12px;">まだ誰も投票していません</div>
+            </div>
+          </div>
         </div>
       </div>
 
