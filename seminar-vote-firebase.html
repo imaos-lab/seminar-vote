@@ -41,6 +41,10 @@ body{font-family:var(--font);font-size:17px;font-weight:400;line-height:1.47;
   color:rgba(255,255,255,0.8);text-decoration:none;transition:color .15s;}
 .nav-links a:hover{color:#fff;}
 .nav-badge{font-size:12px;font-weight:400;letter-spacing:-0.12px;color:rgba(255,255,255,0.5);}
+.nav-admin{display:inline-flex;align-items:center;gap:6px;font-size:12px;letter-spacing:-0.12px;
+  color:rgba(255,255,255,0.85);text-decoration:none;padding:4px 12px;
+  border:1px solid rgba(255,255,255,0.35);border-radius:var(--r-pill);transition:background .15s,color .15s;}
+.nav-admin:hover{background:rgba(255,255,255,0.12);color:#fff;}
 
 /* ── Sub bar ── */
 .sub-bar{position:sticky;top:44px;z-index:800;height:52px;
@@ -181,6 +185,32 @@ body{font-family:var(--font);font-size:17px;font-weight:400;line-height:1.47;
   letter-spacing:-0.224px;white-space:nowrap;}
 .history-voters{display:flex;flex-wrap:wrap;align-items:center;gap:var(--sp-xxs);
   margin-top:var(--sp-xs);}
+.history-meta{font-size:12px;color:var(--ink-48);letter-spacing:-0.12px;margin-top:var(--sp-xxs);}
+
+/* ── Question queue ── */
+.queue-input{width:100%;background:var(--parchment);border:1px solid transparent;
+  border-radius:var(--r-lg);padding:var(--sp-md) var(--sp-lg);font-family:var(--font);
+  font-size:15px;font-weight:400;line-height:1.5;letter-spacing:-0.224px;color:var(--ink);
+  resize:vertical;min-height:88px;outline:none;transition:border-color .2s,background .2s;}
+.queue-input::placeholder{color:var(--ink-48);}
+.queue-input:focus{background:var(--canvas);border-color:var(--primary-focus);
+  box-shadow:0 0 0 3px rgba(0,113,227,.15);}
+.queue-item{display:flex;align-items:center;gap:var(--sp-sm);padding:var(--sp-sm) 0;
+  border-bottom:1px solid var(--hairline);}
+.queue-item:last-child{border-bottom:none;}
+.queue-num{width:24px;height:24px;border-radius:50%;background:var(--parchment);
+  font-size:12px;font-weight:600;color:var(--ink-48);display:inline-flex;
+  align-items:center;justify-content:center;flex-shrink:0;}
+.queue-text{flex:1;min-width:0;font-size:15px;line-height:1.4;letter-spacing:-0.224px;
+  color:var(--ink);word-break:break-word;}
+.queue-actions{display:flex;gap:4px;flex-shrink:0;}
+.queue-btn{background:transparent;border:1px solid var(--hairline);border-radius:var(--r-pill);
+  padding:4px 10px;font-size:12px;font-family:var(--font);color:var(--ink-80);
+  cursor:pointer;letter-spacing:-0.12px;transition:opacity .15s,border-color .15s;}
+.queue-btn:hover{border-color:var(--ink-48);}
+.queue-btn:disabled{opacity:.3;cursor:not-allowed;}
+.queue-btn--primary{background:var(--primary);color:#fff;border-color:var(--primary);}
+.queue-btn--danger{color:#ff3b30;border-color:rgba(255,59,48,.4);}
 
 /* ── Name entry ── */
 .name-entry-tile{min-height:calc(100vh - 44px);display:flex;align-items:center;
@@ -245,6 +275,8 @@ body{font-family:var(--font);font-size:17px;font-weight:400;line-height:1.47;
   .tile__headline{font-size:34px;}
   .tile__tagline{font-size:21px;}
   .tile{padding:var(--sp-xxl) var(--sp-lg);min-height:400px;}
+  .queue-item{flex-wrap:wrap;}
+  .queue-actions{width:100%;justify-content:flex-end;}
 }
 </style>
 </head>
@@ -255,11 +287,8 @@ body{font-family:var(--font);font-size:17px;font-weight:400;line-height:1.47;
   <nav class="global-nav">
     <div class="global-nav__inner">
       <a class="nav-logo" href="#" aria-label="Seminar Vote">◉</a>
-      <ul class="nav-links">
-        <li><a href="#" onclick="goHost();return false;">主催者</a></li>
-        <li><a href="#" onclick="goVoter();return false;">参加者</a></li>
-      </ul>
       <span class="nav-badge">Seminar Vote</span>
+      <a class="nav-admin" href="#" onclick="goHost();return false;">🔒 管理画面</a>
     </div>
   </nav>
 
@@ -268,8 +297,7 @@ body{font-family:var(--font);font-size:17px;font-weight:400;line-height:1.47;
     <h1 class="tile__headline">YES か、NO か。</h1>
     <p class="tile__tagline">セミナーの場を、対話の場に。</p>
     <div class="tile__cta-row">
-      <button class="btn-primary" onclick="goHost()">主催者として開始</button>
-      <button class="btn-secondary" onclick="goVoter()">参加者として投票</button>
+      <button class="btn-primary" onclick="goVoter()">参加者として投票</button>
     </div>
   </section>
 
@@ -278,7 +306,7 @@ body{font-family:var(--font);font-size:17px;font-weight:400;line-height:1.47;
     <h2 class="tile__headline">3ステップで<br>スタート。</h2>
     <p class="tile__tagline">QRを出す。読み取る。投票する。</p>
     <div class="tile__cta-row">
-      <button class="btn-primary" onclick="goHost()">今すぐ試す</button>
+      <button class="btn-primary" onclick="goVoter()">投票に参加する</button>
     </div>
   </section>
 
@@ -332,6 +360,33 @@ body{font-family:var(--font);font-size:17px;font-weight:400;line-height:1.47;
 </div>
 
 
+<!-- ── ADMIN LOGIN ──────────────────────────────────────── -->
+<div id="admin-login" class="screen">
+  <nav class="global-nav">
+    <div class="global-nav__inner">
+      <a class="nav-logo" href="#" onclick="goHome();return false;" aria-label="ホーム">◉</a>
+      <span class="nav-badge">Seminar Vote</span>
+    </div>
+  </nav>
+  <div class="name-entry-tile">
+    <div class="name-entry-card">
+      <p class="section-eyebrow" style="margin-bottom:var(--sp-sm);">管理画面</p>
+      <h2 style="font-size:28px;font-weight:600;letter-spacing:0;margin-bottom:var(--sp-sm);">パスワードを入力してください</h2>
+      <p style="font-size:15px;color:var(--ink-48);margin-bottom:var(--sp-xl);line-height:1.6;">
+        主催者コンソールへのアクセスには<br>パスワードが必要です。
+      </p>
+      <input id="adminPassInput" class="name-input" type="password" placeholder="パスワード"
+        autocomplete="current-password" onkeydown="adminKeydown(event)">
+      <button class="btn-primary" onclick="submitAdminPassword()" style="width:100%;justify-content:center;">ログイン</button>
+      <div style="text-align:center;margin-top:var(--sp-md);">
+        <button onclick="goHome()" style="background:none;border:none;color:var(--primary);
+          font-size:14px;cursor:pointer;font-family:var(--font);letter-spacing:-0.224px;">← 戻る</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <!-- ── HOST ─────────────────────────────────────────────── -->
 <div id="host" class="screen">
   <nav class="global-nav">
@@ -339,6 +394,7 @@ body{font-family:var(--font);font-size:17px;font-weight:400;line-height:1.47;
       <a class="nav-logo" href="#" onclick="goHome();return false;" aria-label="ホーム">◉</a>
       <ul class="nav-links">
         <li><a href="#" onclick="goHome();return false;">← ホーム</a></li>
+        <li><a href="#" onclick="adminLogout();return false;">ログアウト</a></li>
       </ul>
       <span id="hostStatus" class="status-chip status-chip--closed">
         <span class="status-dot"></span>受付停止中
@@ -356,7 +412,7 @@ body{font-family:var(--font);font-size:17px;font-weight:400;line-height:1.47;
     <!-- Main -->
     <div class="host-main">
       <div style="margin-bottom:var(--sp-xl);">
-        <p class="section-eyebrow">質問</p>
+        <p class="section-eyebrow">現在の質問</p>
         <textarea id="questionInput" class="question-input" rows="3"
           placeholder="例：この内容は実務に活かせそうですか？"></textarea>
         <div style="display:flex;gap:var(--sp-sm);margin-top:var(--sp-sm);flex-wrap:wrap;">
@@ -369,6 +425,24 @@ body{font-family:var(--font);font-size:17px;font-weight:400;line-height:1.47;
           <input type="checkbox" id="anonymousCheck" onchange="toggleAnonymous()">
           匿名モード（参加者名を非表示にする）
         </label>
+      </div>
+      <div class="divider"></div>
+
+      <!-- Question queue (prepared in advance) -->
+      <div style="margin-bottom:var(--sp-xl);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp-sm);">
+          <p class="section-eyebrow" style="margin-bottom:0;">質問の準備</p>
+          <span id="queueCount" style="font-size:12px;color:var(--ink-48);letter-spacing:-0.12px;"></span>
+        </div>
+        <textarea id="queueInput" class="queue-input" rows="3"
+          placeholder="事前に用意する質問を入力（1行に1問。複数行でまとめて追加できます）"></textarea>
+        <div style="display:flex;gap:var(--sp-sm);margin-top:var(--sp-sm);flex-wrap:wrap;align-items:center;">
+          <button class="btn-secondary" onclick="addToQueue()" style="font-size:14px;padding:8px 18px;">＋ リストに追加</button>
+          <span style="font-size:12px;color:var(--ink-48);letter-spacing:-0.12px;">「▶ 開始」で即座に投票を開始、「読込」で入力欄にセットします</span>
+        </div>
+        <div id="queueList" style="margin-top:var(--sp-md);">
+          <p style="font-size:14px;color:var(--ink-48);letter-spacing:-0.224px;">準備された質問はありません</p>
+        </div>
       </div>
       <div class="divider"></div>
 
@@ -420,9 +494,13 @@ body{font-family:var(--font);font-size:17px;font-weight:400;line-height:1.47;
       <!-- History -->
       <div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp-sm);">
-          <p class="section-eyebrow" style="margin-bottom:0;">質問履歴</p>
-          <button class="btn-secondary" onclick="clearHistory()"
-            style="font-size:12px;padding:5px 14px;">クリア</button>
+          <p class="section-eyebrow" style="margin-bottom:0;">質問履歴（ログ）</p>
+          <div style="display:flex;gap:var(--sp-xs);">
+            <button class="btn-secondary" onclick="exportHistory()"
+              style="font-size:12px;padding:5px 14px;">CSV出力</button>
+            <button class="btn-secondary" onclick="clearHistory()"
+              style="font-size:12px;padding:5px 14px;">クリア</button>
+          </div>
         </div>
         <div id="historyList">
           <p style="font-size:14px;color:var(--ink-48);letter-spacing:-0.224px;">まだ質問がありません</p>
@@ -447,12 +525,13 @@ body{font-family:var(--font);font-size:17px;font-weight:400;line-height:1.47;
       <div class="utility-card">
         <p style="font-size:14px;font-weight:600;letter-spacing:-0.224px;margin-bottom:var(--sp-sm);color:var(--ink);">使い方</p>
         <ol style="font-size:14px;color:var(--ink-48);letter-spacing:-0.224px;line-height:1.8;padding-left:var(--sp-md);">
+          <li>「質問の準備」で質問を事前登録（任意）</li>
           <li>QRコードを画面に表示</li>
-          <li>参加者がスマホで読み取り</li>
-          <li>名前を入力して投票画面へ</li>
-          <li>質問を入力して「投票を開始」</li>
+          <li>参加者がスマホで読み取り、名前を入力</li>
+          <li>質問を入力するか、準備した質問を「▶ 開始」</li>
           <li>結果・投票者がリアルタイム更新</li>
-          <li>「締め切る」で履歴へ保存</li>
+          <li>「締め切る」でログ（質問履歴）へ保存</li>
+          <li>「CSV出力」でログをダウンロード</li>
         </ol>
       </div>
       <div class="utility-card" style="background:var(--tile-1);border-color:transparent;">
@@ -493,8 +572,13 @@ body{font-family:var(--font);font-size:17px;font-weight:400;line-height:1.47;
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, set, onValue, runTransaction }
+import { getDatabase, ref, set, update, onValue, runTransaction }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+// ── 管理画面パスワード ─────────────────────────────
+// ※ 運用前に必ず変更してください。
+//   静的HTMLのためソースを見れば分かります。誤操作防止用の簡易ロックです。
+const ADMIN_PASSWORD="seminar2026";
 
 const app = initializeApp({
   apiKey:"AIzaSyA0Jwsm2rwx0OZqNkfnKdhS9UtY_G5NSiM",
@@ -509,17 +593,21 @@ const db = getDatabase(app);
 const voteRef    = ref(db,"seminar/vote");
 const historyRef = ref(db,"seminar/history");
 const votersRef  = ref(db,"seminar/voters");
+const queueRef   = ref(db,"seminar/queue");
 
 // ── State ──────────────────────────────────────────
 let vote={open:false,question:"",yes:0,no:0,id:0,anonymous:false};
 let historyData=[];
 let votersData={};
+let queueData=[];
 let hasVoted=false,votedType=null,lastId=0,curScreen="home";
+let hostSyncedId=null; // 質問入力欄に同期済みの vote.id
 
 // セッション管理
 let sessionId=sessionStorage.getItem("sv_sid");
 if(!sessionId){sessionId=crypto.randomUUID();sessionStorage.setItem("sv_sid",sessionId);}
 let voterName=sessionStorage.getItem("sv_name")||"";
+let isAdmin=sessionStorage.getItem("sv_admin")==="1";
 
 // ── Firebase listeners ─────────────────────────────
 onValue(voteRef, snap=>{
@@ -538,6 +626,11 @@ onValue(votersRef, snap=>{
   votersData=snap.val()||{};
   if(curScreen==="host") renderVoterList();
 });
+onValue(queueRef, snap=>{
+  const q=snap.val();
+  queueData=q?Object.entries(q).map(([key,v])=>({key,...v})).sort((a,b)=>a.order-b.order):[];
+  if(curScreen==="host") renderQueue();
+});
 
 // ── Host actions ──────────────────────────────────
 window.openVoting=async()=>{
@@ -549,11 +642,16 @@ window.openVoting=async()=>{
 };
 window.closeVoting=async()=>{
   const v=vote;
+  if(!v.open) return;
+  const closedAt=Date.now();
   await set(voteRef,{...v,open:false});
-  if(v.question&&(v.yes+v.no)>0){
+  // 締め切った質問は票数に関わらず必ずログ（質問履歴）へ保存する
+  if(v.question){
     const votersArr=Object.values(votersData);
-    await set(ref(db,"seminar/history/q"+Date.now()),
-      {q:v.question,yes:v.yes,no:v.no,ts:Date.now(),voters:votersArr,anonymous:v.anonymous||false});
+    await set(ref(db,"seminar/history/q"+closedAt),
+      {q:v.question,yes:v.yes,no:v.no,ts:closedAt,openedAt:v.id||null,
+       voters:votersArr,anonymous:v.anonymous||false});
+    showToast("締め切りました。ログに保存しました");
   }
 };
 window.resetVoting=async()=>{
@@ -562,7 +660,74 @@ window.resetVoting=async()=>{
   document.getElementById("questionInput").value="";
   document.getElementById("anonymousCheck").checked=false;
 };
-window.clearHistory=async()=>{ await set(historyRef,null); };
+window.clearHistory=async()=>{
+  if(!historyData.length){showToast("ログはありません");return;}
+  if(!confirm(`質問履歴（ログ）${historyData.length}件をすべて削除します。よろしいですか？\n必要であれば先に「CSV出力」で保存してください。`)) return;
+  await set(historyRef,null);
+  showToast("ログを削除しました");
+};
+
+// ── History export (CSV) ──────────────────────────
+window.exportHistory=()=>{
+  if(!historyData.length){showToast("出力するログがありません");return;}
+  const csvCell=s=>`"${String(s??"").replace(/"/g,'""')}"`;
+  const nameOf=(h,v)=>h.anonymous?"匿名":(v.name||"匿名");
+  const header=["締切日時","開始日時","質問","YES","NO","総票数","YES率(%)","匿名モード","YES投票者","NO投票者"];
+  const rows=historyData.map(h=>{
+    const t=h.yes+h.no,p=t?Math.round(h.yes/t*100):0;
+    const voters=h.voters||[];
+    const yesNames=voters.filter(v=>v.vote==="yes").map(v=>nameOf(h,v)).join("、");
+    const noNames =voters.filter(v=>v.vote==="no").map(v=>nameOf(h,v)).join("、");
+    return [fmtDate(h.ts),h.openedAt?fmtDate(h.openedAt):"",h.q,h.yes,h.no,t,p,
+      h.anonymous?"ON":"OFF",yesNames,noNames].map(csvCell).join(",");
+  });
+  const BOM=String.fromCharCode(0xFEFF); // Excelで文字化けしないようBOM付きにする
+  const csv=BOM+[header.map(csvCell).join(","),...rows].join("\r\n");
+  const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=`seminar-vote-log_${fileStamp(Date.now())}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  showToast(`ログ${historyData.length}件をCSV出力しました`);
+};
+
+// ── Question queue (prepared in advance) ──────────
+window.addToQueue=async()=>{
+  const ta=document.getElementById("queueInput");
+  const lines=ta.value.split("\n").map(s=>s.trim()).filter(Boolean);
+  if(!lines.length){showToast("質問を入力してください");return;}
+  const base=queueData.length?Math.max(...queueData.map(q=>q.order))+1:1;
+  const now=Date.now();
+  const updates={};
+  lines.forEach((text,i)=>{ updates["q"+(now+i)]={text,order:base+i,ts:now}; });
+  await update(queueRef,updates);
+  ta.value="";
+  showToast(`${lines.length}件の質問を追加しました`);
+};
+window.removeFromQueue=async(key)=>{
+  await set(ref(db,"seminar/queue/"+key),null);
+};
+window.moveQueue=async(key,dir)=>{
+  const i=queueData.findIndex(q=>q.key===key), j=i+dir;
+  if(i<0||j<0||j>=queueData.length) return;
+  const a=queueData[i], b=queueData[j];
+  await update(queueRef,{[a.key+"/order"]:b.order,[b.key+"/order"]:a.order});
+};
+window.loadFromQueue=(key)=>{
+  const q=queueData.find(x=>x.key===key); if(!q) return;
+  document.getElementById("questionInput").value=q.text;
+  window.scrollTo({top:0,behavior:"smooth"});
+  showToast("質問を入力欄に読み込みました");
+};
+window.startFromQueue=async(key)=>{
+  const q=queueData.find(x=>x.key===key); if(!q) return;
+  if(vote.open){showToast("現在の質問を締め切ってから開始してください");return;}
+  document.getElementById("questionInput").value=q.text;
+  await openVoting();
+  await set(ref(db,"seminar/queue/"+key),null);
+  window.scrollTo({top:0,behavior:"smooth"});
+};
 
 window.toggleAnonymous=async()=>{
   if(!vote.id) return;
@@ -598,9 +763,36 @@ window.submitName=()=>{
 };
 window.nameKeydown=(e)=>{ if(e.key==="Enter") submitName(); };
 
+// ── Admin auth ────────────────────────────────────
+window.submitAdminPassword=()=>{
+  const input=document.getElementById("adminPassInput");
+  if(input.value===ADMIN_PASSWORD){
+    isAdmin=true; sessionStorage.setItem("sv_admin","1");
+    input.value="";
+    enterHost();
+  } else {
+    input.value=""; input.focus();
+    showToast("パスワードが違います");
+  }
+};
+window.adminKeydown=(e)=>{ if(e.key==="Enter") submitAdminPassword(); };
+window.adminLogout=()=>{
+  isAdmin=false; sessionStorage.removeItem("sv_admin");
+  showToast("ログアウトしました");
+  goHome();
+};
+
 // ── Navigation ────────────────────────────────────
 window.goHome=()=>{curScreen="home";show("home");};
-window.goHost=()=>{curScreen="host";show("host");renderHost();generateQR();};
+window.goHost=()=>{
+  if(!isAdmin){
+    curScreen="admin-login"; show("admin-login");
+    setTimeout(()=>document.getElementById("adminPassInput").focus(),100);
+    return;
+  }
+  enterHost();
+};
+function enterHost(){curScreen="host";show("host");renderHost();generateQR();}
 window.goVoter=()=>{
   if(!voterName){
     curScreen="name-entry"; show("name-entry");
@@ -634,12 +826,42 @@ function renderHost(){
   document.getElementById("btnOpen").disabled=v.open;
   document.getElementById("btnClose").disabled=!v.open;
   document.getElementById("subBarOpen").disabled=v.open;
+  // 質問入力欄は vote.id が変わったとき（新しい質問が開始されたとき）だけ同期する。
+  // 毎回上書きすると、準備リストから読み込んだ質問が消えてしまうため。
   const qi=document.getElementById("questionInput");
-  if(document.activeElement!==qi&&v.question) qi.value=v.question;
+  if(v.id!==hostSyncedId){
+    hostSyncedId=v.id;
+    if(v.question) qi.value=v.question;
+  }
   const ac=document.getElementById("anonymousCheck");
   if(document.activeElement!==ac) ac.checked=!!v.anonymous;
   renderHistory();
   renderVoterList();
+  renderQueue();
+}
+
+function renderQueue(){
+  const el=document.getElementById("queueList");
+  if(!el) return;
+  const cnt=document.getElementById("queueCount");
+  if(cnt) cnt.textContent=queueData.length?`${queueData.length}件`:"";
+  if(!queueData.length){
+    el.innerHTML=`<p style="font-size:14px;color:var(--ink-48);letter-spacing:-0.224px;">準備された質問はありません</p>`;
+    return;
+  }
+  const last=queueData.length-1;
+  el.innerHTML=queueData.map((q,i)=>`
+    <div class="queue-item">
+      <span class="queue-num">${i+1}</span>
+      <span class="queue-text">${esc(q.text)}</span>
+      <div class="queue-actions">
+        <button class="queue-btn" onclick="moveQueue('${q.key}',-1)" ${i===0?"disabled":""} title="上へ">▲</button>
+        <button class="queue-btn" onclick="moveQueue('${q.key}',1)" ${i===last?"disabled":""} title="下へ">▼</button>
+        <button class="queue-btn" onclick="loadFromQueue('${q.key}')" title="入力欄に読み込む">読込</button>
+        <button class="queue-btn queue-btn--primary" onclick="startFromQueue('${q.key}')" ${vote.open?"disabled":""} title="この質問で投票を開始">▶ 開始</button>
+        <button class="queue-btn queue-btn--danger" onclick="removeFromQueue('${q.key}')" title="削除">✕</button>
+      </div>
+    </div>`).join("");
 }
 
 function renderVoterList(){
@@ -690,9 +912,11 @@ function renderHistory(){
       voterHtml=`<div class="history-voters">${yTags}${nTags}</div>`;
     }
 
+    const meta=[`締切 ${fmtDate(h.ts)}`, `${t}票`, h.anonymous?"匿名":""].filter(Boolean).join(" · ");
+
     return`<div class="history-item">
       <div class="history-header">
-        <span class="history-q">${esc(h.q)}</span>
+        <span class="history-q" title="${esc(h.q)}">${esc(h.q)}</span>
         <span class="history-scores">
           <span style="color:#34c759">YES ${h.yes}</span>
           <span style="color:var(--ink-48);font-weight:400"> / </span>
@@ -700,6 +924,7 @@ function renderHistory(){
           <span style="color:var(--ink-48);font-weight:400;margin-left:4px;">${p}%</span>
         </span>
       </div>
+      <div class="history-meta">${meta}</div>
       ${voterHtml}
     </div>`;
   }).join("");
@@ -765,10 +990,20 @@ function showToast(msg){
   t.textContent=msg;t.classList.add("show");
   setTimeout(()=>t.classList.remove("show"),2400);
 }
-function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function esc(s){return String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+const pad2=n=>String(n).padStart(2,"0");
+function fmtDate(ts){
+  const d=new Date(ts);
+  return `${d.getFullYear()}/${pad2(d.getMonth()+1)}/${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
+function fileStamp(ts){
+  const d=new Date(ts);
+  return `${d.getFullYear()}${pad2(d.getMonth()+1)}${pad2(d.getDate())}_${pad2(d.getHours())}${pad2(d.getMinutes())}`;
+}
 
 const p=new URLSearchParams(location.search);
 if(p.get("mode")==="voter") goVoter();
+if(p.get("mode")==="admin") goHost();
 </script>
 </body>
 </html>
