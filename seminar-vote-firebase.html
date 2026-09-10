@@ -174,6 +174,13 @@ body{font-family:var(--font);font-size:17px;font-weight:400;line-height:1.47;
   border-radius:var(--r-pill);font-size:13px;font-weight:400;letter-spacing:-0.12px;}
 .voter-chip--yes{background:rgba(52,199,89,.1);color:#1a7a32;border:1px solid rgba(52,199,89,.2);}
 .voter-chip--no{background:rgba(255,59,48,.08);color:#c0392b;border:1px solid rgba(255,59,48,.2);}
+.voter-chip--deletable{position:relative;padding-right:14px;}
+.voter-names--live{gap:10px 8px;padding-top:6px;}
+.voter-chip__del{position:absolute;top:-7px;right:-7px;width:18px;height:18px;border-radius:50%;
+  background:var(--ink);color:#fff;border:2px solid var(--canvas);font-size:11px;line-height:1;
+  font-family:var(--font);display:inline-flex;align-items:center;justify-content:center;
+  cursor:pointer;padding:0;transition:background .15s,transform .15s;}
+.voter-chip__del:hover{background:#ff3b30;transform:scale(1.1);}
 
 /* ── History ── */
 .history-item{padding:var(--sp-md) 0;border-bottom:1px solid var(--hairline);}
@@ -628,6 +635,17 @@ onValue(historyRef, snap=>{
 onValue(votersRef, snap=>{
   votersData=snap.val()||{};
   if(curScreen==="host") renderVoterList();
+  // 主催者に自分の回答を削除された場合は、再投票できる状態に戻す
+  // （新しい質問の開始時にも一時的にエントリが消えるため、少し待ってから再確認する）
+  if(curScreen==="voter"&&hasVoted&&!votersData[sessionId]){
+    const idAtCheck=vote.id;
+    setTimeout(()=>{
+      if(curScreen==="voter"&&hasVoted&&vote.open&&vote.id===idAtCheck&&!votersData[sessionId]){
+        hasVoted=false; votedType=null; renderVoter();
+        showToast("主催者により回答が取り消されました。再度投票できます");
+      }
+    },600);
+  }
 });
 onValue(queueRef, snap=>{
   const q=snap.val();
@@ -743,6 +761,20 @@ window.startFromQueue=async(key)=>{
 window.toggleAnonymous=async()=>{
   if(!vote.id) return;
   await set(ref(db,"seminar/vote/anonymous"),document.getElementById("anonymousCheck").checked);
+};
+
+// 回答の個別削除（重複回答の整理用）: 票数を1減らし、投票者エントリを消す
+window.removeVote=async(sid)=>{
+  const v=votersData[sid]; if(!v) return;
+  const who=vote.anonymous?"この回答":`「${v.name||"匿名"}」の回答`;
+  if(!confirm(`${who}（${v.vote==="yes"?"YES":"NO"}）を削除しますか？\n票数から差し引かれ、その参加者は再度投票できるようになります。`)) return;
+  const k=v.vote==="yes"?"yes":"no";
+  await runTransaction(voteRef,cur=>{
+    if(!cur) return cur;
+    return {...cur,[k]:Math.max(0,(cur[k]||0)-1)};
+  });
+  await set(ref(db,"seminar/voters/"+sid),null);
+  showToast("回答を削除しました");
 };
 
 window.toggleVoterList=()=>{
@@ -896,7 +928,7 @@ function renderVoterList(){
   const el=document.getElementById("voterListEl");
   if(!el) return;
   const anon=vote.anonymous;
-  const voters=Object.values(votersData);
+  const voters=Object.entries(votersData).map(([sid,v])=>({sid,...v})).sort((a,b)=>(a.ts||0)-(b.ts||0));
   const yesV=voters.filter(v=>v.vote==="yes");
   const noV=voters.filter(v=>v.vote==="no");
 
@@ -905,19 +937,25 @@ function renderVoterList(){
     return;
   }
 
+  // 各回答に × を付け、重複回答などを個別に削除できるようにする
   const chips=(list,cls)=>list.length
-    ?list.map(v=>`<span class="voter-chip voter-chip--${cls}">${anon?"匿名":esc(v.name)}</span>`).join("")
+    ?list.map(v=>`<span class="voter-chip voter-chip--${cls} voter-chip--deletable">${anon?"匿名":esc(v.name)}
+        <button class="voter-chip__del" onclick="removeVote('${esc(v.sid)}')" title="この回答を削除" aria-label="この回答を削除">×</button>
+      </span>`).join("")
     :`<span style="font-size:13px;color:var(--ink-48);">なし</span>`;
 
   el.innerHTML=`
     <div class="voter-group">
       <div class="voter-group-label voter-group-label--yes">YES (${yesV.length})</div>
-      <div class="voter-names">${chips(yesV,"yes")}</div>
+      <div class="voter-names voter-names--live">${chips(yesV,"yes")}</div>
     </div>
     <div class="voter-group">
       <div class="voter-group-label voter-group-label--no">NO (${noV.length})</div>
-      <div class="voter-names">${chips(noV,"no")}</div>
-    </div>`;
+      <div class="voter-names voter-names--live">${chips(noV,"no")}</div>
+    </div>
+    <p style="font-size:12px;color:var(--ink-48);margin-top:var(--sp-sm);letter-spacing:-0.12px;">
+      × で回答を削除できます（重複回答の整理用）。削除した参加者は再度投票できます。
+    </p>`;
 }
 
 function renderHistory(){
