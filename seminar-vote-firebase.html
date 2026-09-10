@@ -183,9 +183,13 @@ body{font-family:var(--font);font-size:17px;font-weight:400;line-height:1.47;
 .voter-chip__del:hover{background:#ff3b30;transform:scale(1.1);}
 
 /* ── History ── */
-.history-item{padding:var(--sp-md) 0;border-bottom:1px solid var(--hairline);}
+.history-item{padding:var(--sp-md) var(--sp-xs);border-bottom:1px solid var(--hairline);
+  border-radius:var(--r-sm);transition:background .15s;}
 .history-item:last-child{border-bottom:none;}
-.history-header{display:flex;align-items:center;gap:var(--sp-md);}
+.history-item--selected{background:rgba(0,113,227,.06);}
+.history-header{display:flex;align-items:center;gap:var(--sp-sm);}
+.history-check{accent-color:var(--primary);width:16px;height:16px;cursor:pointer;flex-shrink:0;margin:0;}
+.history-body{margin-left:28px;}
 .history-q{flex:1;font-size:14px;font-weight:400;letter-spacing:-0.224px;color:var(--ink);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .history-scores{display:flex;gap:var(--sp-xs);font-size:14px;font-weight:600;
@@ -505,7 +509,11 @@ body{font-family:var(--font);font-size:17px;font-weight:400;line-height:1.47;
       <div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp-sm);">
           <p class="section-eyebrow" style="margin-bottom:0;">質問履歴（ログ）</p>
-          <div style="display:flex;gap:var(--sp-xs);">
+          <div style="display:flex;gap:var(--sp-xs);flex-wrap:wrap;justify-content:flex-end;">
+            <button class="btn-secondary" id="historySelectAll" onclick="selectAllHistory()"
+              style="font-size:12px;padding:5px 14px;display:none;">全選択</button>
+            <button class="btn-danger" id="btnDeleteSelected" onclick="deleteSelectedHistory()"
+              style="font-size:12px;padding:5px 14px;display:none;">選択を削除</button>
             <button class="btn-secondary" onclick="exportHistory()"
               style="font-size:12px;padding:5px 14px;">CSV出力</button>
             <button class="btn-secondary" onclick="clearHistory()"
@@ -629,7 +637,7 @@ onValue(voteRef, snap=>{
 });
 onValue(historyRef, snap=>{
   const h=snap.val();
-  historyData=h?Object.values(h).sort((a,b)=>a.ts-b.ts):[];
+  historyData=h?Object.entries(h).map(([key,v])=>({key,...v})).sort((a,b)=>a.ts-b.ts):[];
   if(curScreen==="host") renderHistory();
 });
 onValue(votersRef, snap=>{
@@ -695,6 +703,44 @@ window.clearHistory=async()=>{
   await set(historyRef,null);
   showToast("ログを削除しました");
 };
+
+// ── History selection / delete ────────────────────
+let selectedHistory=new Set();
+window.toggleHistorySelect=(key,checked)=>{
+  if(checked) selectedHistory.add(key); else selectedHistory.delete(key);
+  updateHistorySelection();
+};
+window.selectAllHistory=()=>{
+  if(historyData.length&&selectedHistory.size===historyData.length) selectedHistory.clear();
+  else historyData.forEach(h=>selectedHistory.add(h.key));
+  renderHistory();
+};
+window.deleteSelectedHistory=async()=>{
+  const keys=[...selectedHistory].filter(k=>historyData.some(h=>h.key===k));
+  if(!keys.length){showToast("削除する項目を選択してください");return;}
+  const names=keys.map(k=>historyData.find(h=>h.key===k).q).slice(0,3).map(q=>`・${q}`).join("\n");
+  const more=keys.length>3?`\n・…ほか${keys.length-3}件`:"";
+  if(!confirm(`選択した${keys.length}件のログを削除しますか？\n${names}${more}\n\nこの操作は取り消せません。`)) return;
+  const updates={}; keys.forEach(k=>{updates[k]=null;});
+  await update(historyRef,updates);
+  selectedHistory.clear();
+  showToast(`${keys.length}件のログを削除しました`);
+};
+function updateHistorySelection(){
+  // 存在しなくなった項目は選択から外す
+  selectedHistory=new Set([...selectedHistory].filter(k=>historyData.some(h=>h.key===k)));
+  const n=selectedHistory.size;
+  const del=document.getElementById("btnDeleteSelected");
+  const all=document.getElementById("historySelectAll");
+  if(!del||!all) return;
+  del.style.display=n?"inline-flex":"none";
+  del.textContent=`選択を削除（${n}件）`;
+  all.style.display=historyData.length?"inline-flex":"none";
+  all.textContent=(historyData.length&&n===historyData.length)?"選択解除":"全選択";
+  document.querySelectorAll(".history-item").forEach(el=>{
+    el.classList.toggle("history-item--selected",selectedHistory.has(el.dataset.key));
+  });
+}
 
 // ── History export (CSV) ──────────────────────────
 window.exportHistory=()=>{
@@ -962,6 +1008,7 @@ function renderHistory(){
   const el=document.getElementById("historyList");
   if(!historyData.length){
     el.innerHTML=`<p style="font-size:14px;color:var(--ink-48);letter-spacing:-0.224px;">まだ質問がありません</p>`;
+    updateHistorySelection();
     return;
   }
   el.innerHTML=[...historyData].reverse().map(h=>{
@@ -980,8 +1027,12 @@ function renderHistory(){
 
     const meta=[`締切 ${fmtDate(h.ts)}`, `${t}票`, h.anonymous?"匿名":""].filter(Boolean).join(" · ");
 
-    return`<div class="history-item">
+    const checked=selectedHistory.has(h.key)?"checked":"";
+
+    return`<div class="history-item ${checked?"history-item--selected":""}" data-key="${esc(h.key)}">
       <div class="history-header">
+        <input type="checkbox" class="history-check" ${checked}
+          onchange="toggleHistorySelect('${esc(h.key)}',this.checked)" aria-label="このログを選択">
         <span class="history-q" title="${esc(h.q)}">${esc(h.q)}</span>
         <span class="history-scores">
           <span style="color:#34c759">YES ${h.yes}</span>
@@ -990,10 +1041,13 @@ function renderHistory(){
           <span style="color:var(--ink-48);font-weight:400;margin-left:4px;">${p}%</span>
         </span>
       </div>
-      <div class="history-meta">${meta}</div>
-      ${voterHtml}
+      <div class="history-body">
+        <div class="history-meta">${meta}</div>
+        ${voterHtml}
+      </div>
     </div>`;
   }).join("");
+  updateHistorySelection();
 }
 
 function renderVoter(){
