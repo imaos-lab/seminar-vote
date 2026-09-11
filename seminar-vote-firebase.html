@@ -196,6 +196,10 @@ body{font-family:var(--font);font-size:17px;font-weight:400;line-height:1.47;
   letter-spacing:-0.224px;white-space:nowrap;}
 .history-voters{display:flex;flex-wrap:wrap;align-items:center;gap:var(--sp-xxs);
   margin-top:var(--sp-xs);}
+.history-voters-toggle{background:none;border:none;padding:0;margin-top:var(--sp-xxs);
+  font-family:var(--font);font-size:12px;color:var(--primary);letter-spacing:-0.12px;
+  cursor:pointer;}
+.history-voters-toggle:hover{text-decoration:underline;}
 .history-meta{font-size:12px;color:var(--ink-48);letter-spacing:-0.12px;margin-top:var(--sp-xxs);}
 
 /* ── Question queue ── */
@@ -706,6 +710,11 @@ window.clearHistory=async()=>{
 
 // ── History selection / delete ────────────────────
 let selectedHistory=new Set();
+let expandedHistory=new Set(); // 投票者名を展開中のログ
+window.toggleHistoryVoters=(key)=>{
+  if(expandedHistory.has(key)) expandedHistory.delete(key); else expandedHistory.add(key);
+  renderHistory();
+};
 window.toggleHistorySelect=(key,checked)=>{
   if(checked) selectedHistory.add(key); else selectedHistory.delete(key);
   updateHistorySelection();
@@ -1018,11 +1027,17 @@ function renderHistory(){
     const yesV=votersArr.filter(v=>v.vote==="yes");
     const noV=votersArr.filter(v=>v.vote==="no");
 
+    // 投票者名はデフォルト非表示。「投票者を表示」で項目ごとに展開する
     let voterHtml="";
     if(votersArr.length){
+      const expanded=expandedHistory.has(h.key);
       const yTags=yesV.map(v=>`<span class="voter-chip voter-chip--yes" style="font-size:12px;padding:2px 8px;">${anon?"匿名":esc(v.name)}</span>`).join("");
       const nTags=noV.map(v=>`<span class="voter-chip voter-chip--no" style="font-size:12px;padding:2px 8px;">${anon?"匿名":esc(v.name)}</span>`).join("");
-      voterHtml=`<div class="history-voters">${yTags}${nTags}</div>`;
+      voterHtml=`
+        <button class="history-voters-toggle" onclick="toggleHistoryVoters('${esc(h.key)}')">
+          ${expanded?"▼ 投票者を閉じる":`▶ 投票者を表示（${votersArr.length}名）`}
+        </button>
+        <div class="history-voters" style="display:${expanded?"flex":"none"};">${yTags}${nTags}</div>`;
     }
 
     const meta=[`締切 ${fmtDate(h.ts)}`, `${t}票`, h.anonymous?"匿名":""].filter(Boolean).join(" · ");
