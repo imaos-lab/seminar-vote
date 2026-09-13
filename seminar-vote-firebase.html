@@ -463,6 +463,10 @@ body{font-family:var(--font);font-size:17px;font-weight:400;line-height:1.47;
       </p>
       <input id="nameInput" class="name-input" type="text" placeholder="例：田中太郎"
         autocomplete="name" onkeydown="nameKeydown(event)">
+      <label class="anon-toggle" style="margin-top:0;margin-bottom:var(--sp-md);">
+        <input type="checkbox" id="saveNameCheck" checked>
+        入力内容を保存する（次回から入力不要）
+      </label>
       <button class="btn-primary" onclick="submitName()" style="width:100%;justify-content:center;">投票画面へ</button>
       <div style="text-align:center;margin-top:var(--sp-md);">
         <button onclick="goHome()" style="background:none;border:none;color:var(--primary);
@@ -696,7 +700,8 @@ body{font-family:var(--font);font-size:17px;font-weight:400;line-height:1.47;
   <nav class="global-nav">
     <div class="global-nav__inner">
       <a class="nav-logo" href="#" onclick="goHome();return false;" aria-label="ホーム">◉</a>
-      <span id="voterNameDisplay" style="font-size:13px;color:rgba(255,255,255,.65);letter-spacing:-0.12px;"></span>
+      <a href="#" id="voterNameDisplay" onclick="changeName();return false;" title="名前を変更"
+        style="font-size:13px;color:rgba(255,255,255,.75);letter-spacing:-0.12px;text-decoration:none;"></a>
       <span id="voterStatus" class="status-chip status-chip--closed">
         <span class="status-dot"></span>受付停止中
       </span>
@@ -804,7 +809,12 @@ let hostSyncedId=null; // 質問入力欄に同期済みの vote.id
 // セッション管理
 let sessionId=sessionStorage.getItem("sv_sid");
 if(!sessionId){sessionId=crypto.randomUUID();sessionStorage.setItem("sv_sid",sessionId);}
-let voterName=sessionStorage.getItem("sv_name")||"";
+// 名前は「入力内容を保存する」ON なら localStorage（次回も引き継ぐ）、OFF なら sessionStorage（タブを閉じるまで）
+const lsGet=k=>{try{return localStorage.getItem(k);}catch(e){return null;}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}};
+const lsDel=k=>{try{localStorage.removeItem(k);}catch(e){}};
+let voterName=lsGet("sv_name")||sessionStorage.getItem("sv_name")||"";
+let saveNamePref=lsGet("sv_save_name")!=="0"; // デフォルト ON
 let isAdmin=sessionStorage.getItem("sv_admin")==="1";
 
 // ── Firebase listeners ─────────────────────────────
@@ -1036,9 +1046,20 @@ window.submitName=()=>{
   if(!n){showToast("お名前を入力してください");return;}
   voterName=n;
   sessionStorage.setItem("sv_name",n);
+  saveNamePref=document.getElementById("saveNameCheck").checked;
+  lsSet("sv_save_name",saveNamePref?"1":"0");
+  if(saveNamePref) lsSet("sv_name",n); else lsDel("sv_name");
   curScreen="voter"; show("voter"); renderVoter();
 };
 window.nameKeydown=(e)=>{ if(e.key==="Enter") submitName(); };
+function showNameEntry(){
+  curScreen="name-entry"; show("name-entry");
+  const input=document.getElementById("nameInput");
+  input.value=voterName||"";
+  document.getElementById("saveNameCheck").checked=saveNamePref;
+  setTimeout(()=>{input.focus();input.select();},100);
+}
+window.changeName=()=>showNameEntry();
 
 // ── Admin auth ────────────────────────────────────
 window.submitAdminPassword=async()=>{
@@ -1105,11 +1126,7 @@ window.goHost=()=>{
 };
 function enterHost(){curScreen="host";show("host");renderHost();generateQR();}
 window.goVoter=()=>{
-  if(!voterName){
-    curScreen="name-entry"; show("name-entry");
-    setTimeout(()=>document.getElementById("nameInput").focus(),100);
-    return;
-  }
+  if(!voterName){ showNameEntry(); return; }
   curScreen="voter"; show("voter"); renderVoter();
 };
 
@@ -1379,7 +1396,7 @@ function renderVoter(){
   chip.innerHTML=`<span class="status-dot"></span>${v.open?"投票受付中":"受付停止中"}`;
 
   const nd=document.getElementById("voterNameDisplay");
-  if(nd) nd.textContent=voterName?`参加者：${voterName}`:"";
+  if(nd) nd.textContent=voterName?`参加者：${voterName} ✎`:"";
 
   const tile=document.getElementById("voterTile");
   tile.className="voter-tile "+(v.open?"tile--dark":"tile--light");
