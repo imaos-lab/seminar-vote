@@ -517,8 +517,6 @@ body{font-family:var(--font);font-size:17px;font-weight:400;line-height:1.47;
   <div class="sub-bar">
     <div class="sub-bar__inner">
       <span class="sub-bar__title">主催者コンソール</span>
-      <button class="btn-primary" id="subBarOpen" onclick="openVoting()"
-        style="font-size:14px;padding:8px 18px;">▶ 投票を開始</button>
     </div>
   </div>
   <div class="host-grid">
@@ -1261,7 +1259,6 @@ function updateOpenButtons(){
   const q=document.getElementById("questionInput").value.trim();
   const dis=vote.open&&q===vote.question;
   document.getElementById("btnOpen").disabled=dis;
-  document.getElementById("subBarOpen").disabled=dis;
 }
 document.getElementById("questionInput").addEventListener("input",updateOpenButtons);
 
