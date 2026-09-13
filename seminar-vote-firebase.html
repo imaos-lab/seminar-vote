@@ -158,45 +158,52 @@ body{font-family:var(--font);font-size:17px;font-weight:400;line-height:1.47;
 .action-row__spacer{flex:1;}
 
 /* ── Presentation (result reveal) ── */
-.presentation{position:fixed;inset:0;z-index:9000;display:none;align-items:center;justify-content:center;
-  padding:var(--sp-xl);color:#fff;opacity:0;transition:opacity .45s;
+/* 高さは vh 基準で縮めて1画面に収める。収まらない場合はスクロール可 */
+.presentation{position:fixed;inset:0;z-index:9000;display:none;justify-content:center;
+  padding:min(28px,3vh) var(--sp-xl);color:#fff;opacity:0;transition:opacity .45s;overflow-y:auto;
   background:radial-gradient(1200px 800px at 50% 30%,#2c2c30 0%,#0b0b0d 70%);}
 .presentation.show{display:flex;}
 .presentation.visible{opacity:1;}
-.presentation__inner{width:100%;max-width:1200px;text-align:center;}
+.presentation__inner{width:100%;max-width:1200px;text-align:center;margin:auto;}
 .presentation__eyebrow{font-size:15px;letter-spacing:6px;text-transform:uppercase;
-  color:rgba(255,255,255,.5);margin-bottom:var(--sp-md);}
-.presentation__question{font-size:clamp(26px,4vw,52px);font-weight:600;line-height:1.2;
-  letter-spacing:-0.3px;margin-bottom:var(--sp-xxl);word-break:break-word;}
+  color:rgba(255,255,255,.5);margin-bottom:min(14px,1.5vh);}
+.presentation__question{font-size:clamp(24px,min(4vw,5.5vh),52px);font-weight:600;line-height:1.2;
+  letter-spacing:-0.3px;margin-bottom:min(40px,4vh);word-break:break-word;}
 .presentation__grid{display:flex;align-items:center;justify-content:center;
-  gap:clamp(24px,7vw,110px);margin-bottom:var(--sp-xl);}
+  gap:clamp(24px,7vw,110px);margin-bottom:min(28px,3vh);}
 .presentation__block{transition:transform .7s cubic-bezier(.2,.8,.2,1),opacity .7s;}
-.presentation__num{font-size:clamp(96px,18vw,240px);font-weight:700;line-height:1;letter-spacing:-6px;
+.presentation__num{font-size:clamp(72px,min(18vw,26vh),240px);font-weight:700;line-height:1;letter-spacing:-6px;
   font-variant-numeric:tabular-nums;}
 .presentation__block--yes .presentation__num{color:#34c759;}
 .presentation__block--no .presentation__num{color:#ff453a;}
-.presentation__label{font-size:clamp(16px,2vw,24px);letter-spacing:6px;color:rgba(255,255,255,.6);margin-top:var(--sp-xs);}
-.presentation__pct{font-size:clamp(20px,3vw,36px);font-weight:600;margin-top:var(--sp-xxs);
-  color:rgba(255,255,255,.85);min-height:1.2em;}
+.presentation__label{font-size:clamp(14px,min(2vw,2.5vh),24px);letter-spacing:6px;color:rgba(255,255,255,.6);margin-top:min(8px,1vh);}
+.presentation__pct{font-size:clamp(18px,min(3vw,4vh),36px);font-weight:600;margin-top:var(--sp-xxs);
+  color:rgba(255,255,255,.85);min-height:1.2em;line-height:1.2;}
 .presentation__vs{font-size:clamp(18px,2.5vw,32px);color:rgba(255,255,255,.3);font-weight:300;}
 .presentation__block--winner{transform:scale(1.12);}
 .presentation__block--winner .presentation__num{text-shadow:0 0 70px currentColor;}
 .presentation__block--loser{opacity:.4;transform:scale(.92);}
 .presentation--counting .presentation__num{animation:countPulse 1s ease-in-out infinite;color:rgba(255,255,255,.35) !important;}
 @keyframes countPulse{0%,100%{opacity:.5;}50%{opacity:1;}}
-.presentation__bar{display:flex;height:22px;border-radius:var(--r-pill);overflow:hidden;
-  background:rgba(255,255,255,.1);max-width:900px;margin:0 auto var(--sp-xl);}
+.presentation__bar{display:flex;height:min(22px,2.4vh);border-radius:var(--r-pill);overflow:hidden;
+  background:rgba(255,255,255,.1);max-width:900px;margin:0 auto min(28px,3vh);}
 .presentation__bar-yes{background:#34c759;width:0;transition:width 1.5s cubic-bezier(.2,.8,.2,1);}
 .presentation__bar-no{background:#ff453a;width:0;transition:width 1.5s cubic-bezier(.2,.8,.2,1);}
-.presentation__verdict{font-size:clamp(24px,3.5vw,44px);font-weight:600;min-height:1.3em;
+.presentation__verdict{font-size:clamp(22px,min(3.5vw,5vh),44px);font-weight:600;min-height:1.3em;line-height:1.3;
   opacity:0;transform:translateY(14px);transition:opacity .6s,transform .6s;}
 .presentation__verdict.show{opacity:1;transform:none;}
-.presentation__total{font-size:16px;color:rgba(255,255,255,.5);margin-top:var(--sp-sm);letter-spacing:-0.224px;}
-.presentation__close{position:absolute;top:20px;right:24px;width:48px;height:48px;border-radius:50%;
+.presentation__total{font-size:16px;color:rgba(255,255,255,.5);margin-top:min(10px,1.2vh);letter-spacing:-0.224px;}
+.presentation__close{position:fixed;top:20px;right:24px;width:48px;height:48px;border-radius:50%;
   background:rgba(255,255,255,.12);color:#fff;border:none;font-size:28px;line-height:1;cursor:pointer;
-  font-family:var(--font);transition:background .15s;}
+  font-family:var(--font);transition:background .15s;z-index:1;}
 .presentation__close:hover{background:rgba(255,255,255,.25);}
-.presentation__btn{margin-top:var(--sp-xl);color:#fff;border-color:rgba(255,255,255,.4);}
+.presentation__fs{position:fixed;top:20px;right:84px;height:48px;padding:0 18px;border-radius:var(--r-pill);
+  background:rgba(255,255,255,.12);color:#fff;border:none;font-size:14px;cursor:pointer;
+  font-family:var(--font);display:inline-flex;align-items:center;gap:8px;letter-spacing:-0.224px;
+  transition:background .15s;z-index:1;}
+.presentation__fs:hover{background:rgba(255,255,255,.25);}
+.presentation__btn{margin-top:min(28px,3vh);color:#fff;border-color:rgba(255,255,255,.4);}
+.pw-input{font-size:14px;padding:10px 14px;margin-bottom:var(--sp-xs);border-radius:var(--r-md);}
 .host-main{padding:var(--sp-xxl) var(--sp-xl);background:var(--canvas);
   border-right:1px solid var(--hairline);}
 .host-sidebar{padding:var(--sp-xxl) var(--sp-xl);background:var(--parchment);
@@ -660,6 +667,17 @@ body{font-family:var(--font);font-size:17px;font-weight:400;line-height:1.47;
           <li>「CSV出力」でログをダウンロード</li>
         </ol>
       </div>
+      <div class="utility-card">
+        <p style="font-size:14px;font-weight:600;letter-spacing:-0.224px;margin-bottom:var(--sp-sm);color:var(--ink);">管理者パスワードの変更</p>
+        <input id="pwCurrent" class="name-input pw-input" type="password" placeholder="現在のパスワード" autocomplete="current-password">
+        <input id="pwNew" class="name-input pw-input" type="password" placeholder="新しいパスワード（6文字以上）" autocomplete="new-password">
+        <input id="pwNew2" class="name-input pw-input" type="password" placeholder="新しいパスワード（確認）" autocomplete="new-password">
+        <button class="btn-secondary" onclick="changeAdminPassword()"
+          style="width:100%;justify-content:center;font-size:14px;padding:8px 18px;margin-top:var(--sp-xxs);">パスワードを変更</button>
+        <p style="font-size:12px;color:var(--ink-48);letter-spacing:-0.12px;line-height:1.5;margin-top:var(--sp-sm);">
+          変更後はすべての端末で新しいパスワードが必要になります。
+        </p>
+      </div>
       <div class="utility-card" style="background:var(--tile-1);border-color:transparent;">
         <p style="font-size:14px;font-weight:600;letter-spacing:-0.224px;margin-bottom:var(--sp-xs);color:#fff;">Firebase 接続済み</p>
         <p style="font-size:12px;color:var(--muted-dark);letter-spacing:-0.12px;line-height:1.5;">
@@ -696,6 +714,7 @@ body{font-family:var(--font);font-size:17px;font-weight:400;line-height:1.47;
 
 <!-- ── PRESENTATION (result reveal) ─────────────────────── -->
 <div id="presentation" class="presentation" aria-hidden="true">
+  <button class="presentation__fs" id="pFsBtn" onclick="togglePresentationFullscreen()">⛶ 全画面</button>
   <button class="presentation__close" onclick="closePresentation()" aria-label="閉じる">×</button>
   <div class="presentation__inner">
     <p class="presentation__eyebrow">投票結果</p>
@@ -731,8 +750,9 @@ import { getDatabase, ref, set, update, onValue, runTransaction }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 // ── 管理画面パスワード ─────────────────────────────
-// ※ 運用前に必ず変更してください。
-//   静的HTMLのためソースを見れば分かります。誤操作防止用の簡易ロックです。
+// 初期パスワード。管理画面の「管理者パスワードの変更」で変更すると、
+// SHA-256 ハッシュが Firebase（seminar/config/adminPassHash）に保存され、そちらが優先されます。
+// 忘れた場合は Firebase コンソールで adminPassHash を削除すると初期パスワードに戻ります。
 const ADMIN_PASSWORD="seminar2026";
 
 const app = initializeApp({
@@ -749,6 +769,27 @@ const voteRef    = ref(db,"seminar/vote");
 const historyRef = ref(db,"seminar/history");
 const votersRef  = ref(db,"seminar/voters");
 const queueRef   = ref(db,"seminar/queue");
+const configRef  = ref(db,"seminar/config");
+
+// ── Admin password (hash stored in Firebase) ──────
+let adminPassHash=null; // null = 未設定（初期パスワードを使用）
+const configReady=new Promise(resolve=>{
+  onValue(configRef, snap=>{
+    const c=snap.val()||{};
+    adminPassHash=c.adminPassHash||null;
+    resolve();
+  });
+});
+async function sha256(s){
+  const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+async function verifyAdminPassword(pw){
+  await configReady;
+  if(!adminPassHash) return pw===ADMIN_PASSWORD;
+  if(!crypto.subtle) throw new Error("insecure-context");
+  return (await sha256(pw))===adminPassHash;
+}
 
 // ── State ──────────────────────────────────────────
 let vote={open:false,question:"",yes:0,no:0,id:0,anonymous:false};
@@ -998,9 +1039,14 @@ window.submitName=()=>{
 window.nameKeydown=(e)=>{ if(e.key==="Enter") submitName(); };
 
 // ── Admin auth ────────────────────────────────────
-window.submitAdminPassword=()=>{
+window.submitAdminPassword=async()=>{
   const input=document.getElementById("adminPassInput");
-  if(input.value===ADMIN_PASSWORD){
+  const pw=input.value;
+  if(!pw){showToast("パスワードを入力してください");return;}
+  let ok=false;
+  try{ ok=await verifyAdminPassword(pw); }
+  catch(e){ showToast("認証処理に失敗しました。HTTPSで開いてください"); return; }
+  if(ok){
     isAdmin=true; sessionStorage.setItem("sv_admin","1");
     input.value="";
     enterHost();
@@ -1009,6 +1055,35 @@ window.submitAdminPassword=()=>{
     showToast("パスワードが違います");
   }
 };
+window.changeAdminPassword=async()=>{
+  const $=id=>document.getElementById(id);
+  const cur=$("pwCurrent").value, n1=$("pwNew").value, n2=$("pwNew2").value;
+  if(!cur||!n1||!n2){showToast("すべての欄を入力してください");return;}
+  let ok=false;
+  try{ ok=await verifyAdminPassword(cur); }
+  catch(e){ showToast("認証処理に失敗しました。HTTPSで開いてください"); return; }
+  if(!ok){showToast("現在のパスワードが違います");$("pwCurrent").focus();return;}
+  if(n1.length<6){showToast("新しいパスワードは6文字以上にしてください");return;}
+  if(n1!==n2){showToast("新しいパスワード（確認）が一致しません");return;}
+  if(n1===cur){showToast("現在のパスワードと同じです");return;}
+  if(!crypto.subtle){showToast("この環境ではパスワードを変更できません。HTTPSで開いてください");return;}
+  if(!confirm("管理者パスワードを変更します。よろしいですか？\n新しいパスワードを忘れると管理画面に入れなくなります。")) return;
+  await set(ref(db,"seminar/config/adminPassHash"),await sha256(n1));
+  ["pwCurrent","pwNew","pwNew2"].forEach(id=>{$(id).value="";});
+  showToast("管理者パスワードを変更しました");
+};
+
+// ── Presentation fullscreen ───────────────────────
+window.togglePresentationFullscreen=()=>{
+  const root=document.getElementById("presentation");
+  if(document.fullscreenElement){ document.exitFullscreen(); return; }
+  if(!root.requestFullscreen){ showToast("このブラウザは全画面表示に対応していません"); return; }
+  root.requestFullscreen().catch(()=>showToast("全画面表示にできませんでした"));
+};
+document.addEventListener("fullscreenchange",()=>{
+  const b=document.getElementById("pFsBtn");
+  if(b) b.textContent=document.fullscreenElement?"⛶ 全画面を解除":"⛶ 全画面";
+});
 window.adminKeydown=(e)=>{ if(e.key==="Enter") submitAdminPassword(); };
 window.adminLogout=()=>{
   isAdmin=false; sessionStorage.removeItem("sv_admin");
@@ -1169,6 +1244,7 @@ window.showPresentation=(data)=>{
 window.closePresentation=()=>{
   presClearTimers();
   presOpen=false;
+  if(document.fullscreenElement) document.exitFullscreen().catch(()=>{});
   const root=document.getElementById("presentation");
   root.classList.remove("visible");
   root.setAttribute("aria-hidden","true");
