@@ -115,7 +115,88 @@ body{font-family:var(--font);font-size:17px;font-weight:400;line-height:1.47;
   display:inline-flex;box-shadow:var(--shadow-product);}
 
 /* ── Host grid ── */
-.host-grid{display:grid;grid-template-columns:1fr 340px;min-height:calc(100vh - 96px);}
+.host-grid{display:grid;grid-template-columns:1fr 420px;min-height:calc(100vh - 96px);}
+#qrcode{width:100%;max-width:320px;}
+#qrcode img,#qrcode canvas{width:100% !important;height:auto !important;display:block;}
+
+/* ── Stage (current question, projected) ── */
+.stage{background:var(--tile-1);color:#fff;border-radius:var(--r-lg);
+  padding:var(--sp-xl) var(--sp-xl) var(--sp-lg);margin-bottom:var(--sp-lg);
+  box-shadow:var(--shadow-product);position:relative;overflow:hidden;
+  transition:box-shadow .3s;}
+.stage--open{box-shadow:0 0 0 3px rgba(52,199,89,.55),0 16px 40px rgba(52,199,89,.25);}
+.stage__top{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-md);
+  margin-bottom:var(--sp-md);flex-wrap:wrap;}
+.stage__eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:600;
+  letter-spacing:2px;text-transform:uppercase;color:var(--muted-dark);}
+.stage--open .stage__eyebrow{color:#34c759;}
+.stage--open .stage__eyebrow .status-dot{background:#34c759;animation:pulse 1.6s ease-in-out infinite;}
+.stage__count{font-size:14px;color:var(--muted-dark);letter-spacing:-0.224px;}
+.stage__question{font-size:clamp(28px,3.4vw,48px);font-weight:600;line-height:1.18;
+  letter-spacing:-0.3px;word-break:break-word;min-height:1.2em;}
+.stage__question--empty{color:rgba(255,255,255,.4);font-weight:400;font-size:clamp(18px,2vw,24px);}
+.stage__tally{display:flex;gap:var(--sp-xl);margin-top:var(--sp-lg);align-items:baseline;flex-wrap:wrap;}
+.tally{display:inline-flex;align-items:baseline;gap:10px;font-size:16px;letter-spacing:2px;font-weight:600;}
+.tally b{font-size:clamp(32px,4vw,56px);font-weight:700;line-height:1;letter-spacing:-1px;
+  font-variant-numeric:tabular-nums;transition:transform .2s;}
+.tally--yes{color:#34c759;} .tally--no{color:#ff453a;}
+.stage__note{font-size:12px;color:rgba(255,255,255,.45);margin-top:var(--sp-md);letter-spacing:-0.12px;}
+
+/* ── Big action buttons ── */
+.action-row{display:flex;gap:var(--sp-md);align-items:center;flex-wrap:wrap;margin-bottom:var(--sp-lg);}
+.btn-big{display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  padding:18px 40px;font-family:var(--font);font-size:22px;font-weight:600;letter-spacing:-0.3px;
+  color:#fff;border:none;border-radius:var(--r-pill);cursor:pointer;
+  transition:transform .15s,box-shadow .2s,opacity .2s;}
+.btn-big--start{background:linear-gradient(135deg,#0a84ff,#0058b3);box-shadow:0 8px 24px rgba(0,102,204,.35);}
+.btn-big--stop{background:linear-gradient(135deg,#ff453a,#c70012);box-shadow:0 8px 24px rgba(255,59,48,.35);}
+.btn-big:not(:disabled):hover{transform:translateY(-2px);filter:brightness(1.05);}
+.btn-big:not(:disabled):active{transform:scale(.97);}
+.btn-big:disabled{opacity:.28;box-shadow:none;cursor:not-allowed;}
+.btn-big--stop:not(:disabled){animation:stopGlow 2s ease-in-out infinite;}
+@keyframes stopGlow{0%,100%{box-shadow:0 8px 24px rgba(255,59,48,.35);}50%{box-shadow:0 8px 32px rgba(255,59,48,.65);}}
+.action-row__spacer{flex:1;}
+
+/* ── Presentation (result reveal) ── */
+.presentation{position:fixed;inset:0;z-index:9000;display:none;align-items:center;justify-content:center;
+  padding:var(--sp-xl);color:#fff;opacity:0;transition:opacity .45s;
+  background:radial-gradient(1200px 800px at 50% 30%,#2c2c30 0%,#0b0b0d 70%);}
+.presentation.show{display:flex;}
+.presentation.visible{opacity:1;}
+.presentation__inner{width:100%;max-width:1200px;text-align:center;}
+.presentation__eyebrow{font-size:15px;letter-spacing:6px;text-transform:uppercase;
+  color:rgba(255,255,255,.5);margin-bottom:var(--sp-md);}
+.presentation__question{font-size:clamp(26px,4vw,52px);font-weight:600;line-height:1.2;
+  letter-spacing:-0.3px;margin-bottom:var(--sp-xxl);word-break:break-word;}
+.presentation__grid{display:flex;align-items:center;justify-content:center;
+  gap:clamp(24px,7vw,110px);margin-bottom:var(--sp-xl);}
+.presentation__block{transition:transform .7s cubic-bezier(.2,.8,.2,1),opacity .7s;}
+.presentation__num{font-size:clamp(96px,18vw,240px);font-weight:700;line-height:1;letter-spacing:-6px;
+  font-variant-numeric:tabular-nums;}
+.presentation__block--yes .presentation__num{color:#34c759;}
+.presentation__block--no .presentation__num{color:#ff453a;}
+.presentation__label{font-size:clamp(16px,2vw,24px);letter-spacing:6px;color:rgba(255,255,255,.6);margin-top:var(--sp-xs);}
+.presentation__pct{font-size:clamp(20px,3vw,36px);font-weight:600;margin-top:var(--sp-xxs);
+  color:rgba(255,255,255,.85);min-height:1.2em;}
+.presentation__vs{font-size:clamp(18px,2.5vw,32px);color:rgba(255,255,255,.3);font-weight:300;}
+.presentation__block--winner{transform:scale(1.12);}
+.presentation__block--winner .presentation__num{text-shadow:0 0 70px currentColor;}
+.presentation__block--loser{opacity:.4;transform:scale(.92);}
+.presentation--counting .presentation__num{animation:countPulse 1s ease-in-out infinite;color:rgba(255,255,255,.35) !important;}
+@keyframes countPulse{0%,100%{opacity:.5;}50%{opacity:1;}}
+.presentation__bar{display:flex;height:22px;border-radius:var(--r-pill);overflow:hidden;
+  background:rgba(255,255,255,.1);max-width:900px;margin:0 auto var(--sp-xl);}
+.presentation__bar-yes{background:#34c759;width:0;transition:width 1.5s cubic-bezier(.2,.8,.2,1);}
+.presentation__bar-no{background:#ff453a;width:0;transition:width 1.5s cubic-bezier(.2,.8,.2,1);}
+.presentation__verdict{font-size:clamp(24px,3.5vw,44px);font-weight:600;min-height:1.3em;
+  opacity:0;transform:translateY(14px);transition:opacity .6s,transform .6s;}
+.presentation__verdict.show{opacity:1;transform:none;}
+.presentation__total{font-size:16px;color:rgba(255,255,255,.5);margin-top:var(--sp-sm);letter-spacing:-0.224px;}
+.presentation__close{position:absolute;top:20px;right:24px;width:48px;height:48px;border-radius:50%;
+  background:rgba(255,255,255,.12);color:#fff;border:none;font-size:28px;line-height:1;cursor:pointer;
+  font-family:var(--font);transition:background .15s;}
+.presentation__close:hover{background:rgba(255,255,255,.25);}
+.presentation__btn{margin-top:var(--sp-xl);color:#fff;border-color:rgba(255,255,255,.4);}
 .host-main{padding:var(--sp-xxl) var(--sp-xl);background:var(--canvas);
   border-right:1px solid var(--hairline);}
 .host-sidebar{padding:var(--sp-xxl) var(--sp-xl);background:var(--parchment);
@@ -278,8 +359,14 @@ body{font-family:var(--font);font-size:17px;font-weight:400;line-height:1.47;
 .divider{height:1px;background:var(--hairline);margin:var(--sp-xl) 0;}
 
 /* ── Responsive ── */
+@media(max-width:1100px){
+  .host-grid{grid-template-columns:1fr 340px;}
+  #qrcode{max-width:260px;}
+}
 @media(max-width:833px){
   .host-grid{grid-template-columns:1fr;}
+  .btn-big{font-size:18px;padding:14px 28px;}
+  .stage{padding:var(--sp-lg);}
   .host-sidebar{border-top:1px solid var(--hairline);}
   .nav-links{display:none;}
   .vote-btn{width:140px;height:140px;font-size:28px;}
@@ -426,23 +513,40 @@ body{font-family:var(--font);font-size:17px;font-weight:400;line-height:1.47;
   <div class="host-grid">
     <!-- Main -->
     <div class="host-main">
-      <div style="margin-bottom:var(--sp-xl);">
-        <p class="section-eyebrow">現在の質問</p>
-        <textarea id="questionInput" class="question-input" rows="3"
-          placeholder="例：この内容は実務に活かせそうですか？"></textarea>
-        <div style="display:flex;gap:var(--sp-sm);margin-top:var(--sp-sm);flex-wrap:wrap;">
-          <button class="btn-primary" id="btnOpen" onclick="openVoting()">▶ 投票を開始</button>
-          <button class="btn-danger" id="btnClose" onclick="closeVoting()" disabled>■ 締め切る</button>
-          <button class="btn-secondary" onclick="resetVoting()"
-            style="font-size:14px;padding:8px 18px;">リセット</button>
+      <!-- Stage: 現在の質問を大きく表示（投影用） -->
+      <div class="stage" id="stage">
+        <div class="stage__top">
+          <span class="stage__eyebrow" id="stageEyebrow">現在の質問</span>
+          <span class="stage__count" id="stageCount"></span>
         </div>
+        <div class="stage__question stage__question--empty" id="stageQuestion">
+          質問を入力して「投票を開始」を押してください
+        </div>
+        <div class="stage__tally" id="stageTally" style="display:none;">
+          <span class="tally tally--yes">YES <b id="stageYes">0</b></span>
+          <span class="tally tally--no">NO <b id="stageNo">0</b></span>
+        </div>
+        <p class="stage__note" id="stageNote" style="display:none;"></p>
+      </div>
+
+      <div class="action-row">
+        <button class="btn-big btn-big--start" id="btnOpen" onclick="openVoting()">▶ 投票を開始</button>
+        <button class="btn-big btn-big--stop" id="btnClose" onclick="closeVoting()" disabled>■ 締め切る</button>
+        <span class="action-row__spacer"></span>
+        <button class="btn-secondary" id="btnShowResult" onclick="showPresentation()"
+          style="font-size:14px;padding:8px 18px;" disabled>結果を大きく表示</button>
+        <button class="btn-secondary" onclick="resetVoting()"
+          style="font-size:14px;padding:8px 18px;">リセット</button>
+      </div>
+
+      <div style="margin-bottom:var(--sp-xl);">
+        <p class="section-eyebrow">質問を入力</p>
+        <textarea id="questionInput" class="question-input" rows="2"
+          placeholder="例：この内容は実務に活かせそうですか？"></textarea>
         <label class="anon-toggle">
           <input type="checkbox" id="anonymousCheck" onchange="toggleAnonymous()">
           匿名モード（参加者名を非表示にする）
         </label>
-        <p id="liveQuestion" style="display:none;margin-top:var(--sp-sm);padding:var(--sp-sm) var(--sp-md);
-          background:rgba(52,199,89,.08);border:1px solid rgba(52,199,89,.3);border-radius:var(--r-md);
-          font-size:14px;color:#1a7a32;letter-spacing:-0.224px;line-height:1.5;"></p>
       </div>
       <div class="divider"></div>
 
@@ -590,6 +694,35 @@ body{font-family:var(--font);font-size:17px;font-weight:400;line-height:1.47;
   </div>
 </div>
 
+<!-- ── PRESENTATION (result reveal) ─────────────────────── -->
+<div id="presentation" class="presentation" aria-hidden="true">
+  <button class="presentation__close" onclick="closePresentation()" aria-label="閉じる">×</button>
+  <div class="presentation__inner">
+    <p class="presentation__eyebrow">投票結果</p>
+    <h2 class="presentation__question" id="pQuestion"></h2>
+    <div class="presentation__grid">
+      <div class="presentation__block presentation__block--yes" id="pYesBlock">
+        <div class="presentation__num" id="pYes">0</div>
+        <div class="presentation__label">YES</div>
+        <div class="presentation__pct" id="pYesPct"></div>
+      </div>
+      <div class="presentation__vs">vs</div>
+      <div class="presentation__block presentation__block--no" id="pNoBlock">
+        <div class="presentation__num" id="pNo">0</div>
+        <div class="presentation__label">NO</div>
+        <div class="presentation__pct" id="pNoPct"></div>
+      </div>
+    </div>
+    <div class="presentation__bar">
+      <div class="presentation__bar-yes" id="pBarYes"></div>
+      <div class="presentation__bar-no" id="pBarNo"></div>
+    </div>
+    <p class="presentation__verdict" id="pVerdict"></p>
+    <p class="presentation__total" id="pTotal"></p>
+    <button class="btn-secondary presentation__btn" onclick="closePresentation()">閉じる（Esc）</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script type="module">
@@ -674,14 +807,15 @@ window.openVoting=async()=>{
     // 受付中の質問がある場合は、確認のうえ締め切って（ログに保存して）から新しい質問を開始する
     const ok=confirm(`受付中の質問「${vote.question}」を締め切ってログに保存し、\n新しい質問「${q}」を開始しますか？`);
     if(!ok) return false;
-    await closeVoting();
+    await closeVoting({present:false});
   }
   await set(votersRef,null);
   const anon=document.getElementById("anonymousCheck").checked;
   await set(voteRef,{open:true,question:q,yes:0,no:0,id:Date.now(),anonymous:anon});
   return true;
 };
-window.closeVoting=async()=>{
+window.closeVoting=async(opts)=>{
+  const present=!(opts&&opts.present===false);
   const v=vote;
   if(!v.open) return;
   const closedAt=Date.now();
@@ -693,6 +827,8 @@ window.closeVoting=async()=>{
       {q:v.question,yes:v.yes,no:v.no,ts:closedAt,openedAt:v.id||null,
        voters:votersArr,anonymous:v.anonymous||false});
     showToast("締め切りました。ログに保存しました");
+    // 締切時は結果をプレゼンテーションモードで大きく表示する
+    if(present&&curScreen==="host") showPresentation({question:v.question,yes:v.yes,no:v.no});
   }
 };
 window.resetVoting=async()=>{
@@ -930,21 +1066,115 @@ function renderHost(){
     if(v.question) qi.value=v.question;
   }
   updateOpenButtons();
-  // 受付中の質問を明示（入力欄の内容と区別できるように）
-  const live=document.getElementById("liveQuestion");
-  if(v.open&&v.question){
-    live.style.display="block";
-    live.innerHTML=`受付中の質問：「${esc(v.question)}」<br>
-      <span style="color:var(--ink-48);font-size:12px;">別の質問で「投票を開始」すると、この質問を締め切ってログに保存してから開始します。</span>`;
+  document.getElementById("btnShowResult").disabled=!v.question;
+  // ステージ（現在の質問を大きく表示）
+  const stage=document.getElementById("stage");
+  const sq=document.getElementById("stageQuestion");
+  const ey=document.getElementById("stageEyebrow");
+  stage.classList.toggle("stage--open",!!v.open);
+  if(v.question){
+    sq.textContent=v.question; sq.classList.remove("stage__question--empty");
   } else {
-    live.style.display="none";
+    sq.textContent="質問を入力して「投票を開始」を押してください"; sq.classList.add("stage__question--empty");
   }
+  ey.innerHTML=v.open?`<span class="status-dot"></span>投票受付中`:(v.question?"締め切り済み":"現在の質問");
+  document.getElementById("stageCount").textContent=v.question?`総票数 ${total}票`:"";
+  document.getElementById("stageTally").style.display=v.question?"flex":"none";
+  bumpNumber(document.getElementById("stageYes"),v.yes);
+  bumpNumber(document.getElementById("stageNo"),v.no);
+  const note=document.getElementById("stageNote");
+  note.style.display=v.open?"block":"none";
+  note.textContent="別の質問で「投票を開始」すると、この質問を締め切ってログに保存してから開始します。";
   const ac=document.getElementById("anonymousCheck");
   if(document.activeElement!==ac) ac.checked=!!v.anonymous;
   renderHistory();
   renderVoterList();
   renderQueue();
 }
+
+// 数値が増えたときに軽く弾ませる（ライブ集計の視認性向上）
+function bumpNumber(el,val){
+  const prev=Number(el.textContent)||0;
+  el.textContent=val;
+  if(val>prev){
+    el.style.transform="scale(1.25)";
+    setTimeout(()=>{el.style.transform="";},200);
+  }
+}
+
+// ── Presentation mode (result reveal) ─────────────
+let presOpen=false, presTimers=[];
+const presLater=(fn,ms)=>{presTimers.push(setTimeout(fn,ms));};
+function presClearTimers(){presTimers.forEach(clearTimeout);presTimers=[];}
+function animateCount(el,to,dur){
+  const start=performance.now();
+  const step=now=>{
+    const t=Math.min(1,(now-start)/dur);
+    const e=1-Math.pow(1-t,3); // ease-out
+    el.textContent=Math.round(to*e);
+    if(t<1&&presOpen) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+window.showPresentation=(data)=>{
+  const d=(data&&data.question!==undefined)?data:{question:vote.question,yes:vote.yes,no:vote.no};
+  if(!d.question){showToast("表示する結果がありません");return;}
+  presClearTimers();
+  const total=d.yes+d.no;
+  const yp=total?Math.round(d.yes/total*100):0;
+  const np=total?Math.round(d.no/total*100):0;
+  const $=id=>document.getElementById(id);
+  const root=$("presentation");
+  $("pQuestion").textContent=d.question;
+  $("pYes").textContent="0"; $("pNo").textContent="0";
+  $("pYesPct").textContent=""; $("pNoPct").textContent="";
+  $("pBarYes").style.width="0%"; $("pBarNo").style.width="0%";
+  const vd=$("pVerdict"); vd.className="presentation__verdict"; vd.textContent=""; vd.style.color="";
+  $("pTotal").textContent="集計中…";
+  $("pYesBlock").className="presentation__block presentation__block--yes";
+  $("pNoBlock").className="presentation__block presentation__block--no";
+  root.classList.add("show","presentation--counting");
+  root.setAttribute("aria-hidden","false");
+  presOpen=true;
+  requestAnimationFrame(()=>root.classList.add("visible"));
+  // フェーズ1: 「集計中」の間（0.9秒）
+  presLater(()=>{
+    // フェーズ2: カウントアップとバーの伸長（1.6秒）
+    root.classList.remove("presentation--counting");
+    $("pTotal").textContent=`総票数 ${total}票`;
+    animateCount($("pYes"),d.yes,1600);
+    animateCount($("pNo"),d.no,1600);
+    $("pBarYes").style.width=yp+"%";
+    $("pBarNo").style.width=np+"%";
+    presLater(()=>{$("pYesPct").textContent=yp+"%";$("pNoPct").textContent=np+"%";},1000);
+  },900);
+  // フェーズ3: 判定の表示と勝者の強調
+  presLater(()=>{
+    if(!total){
+      vd.textContent="投票はありませんでした";
+    } else if(d.yes>d.no){
+      $("pYesBlock").classList.add("presentation__block--winner");
+      $("pNoBlock").classList.add("presentation__block--loser");
+      vd.textContent=`YES が多数（${yp}%）`; vd.style.color="#34c759";
+    } else if(d.no>d.yes){
+      $("pNoBlock").classList.add("presentation__block--winner");
+      $("pYesBlock").classList.add("presentation__block--loser");
+      vd.textContent=`NO が多数（${np}%）`; vd.style.color="#ff453a";
+    } else {
+      vd.textContent="同数でした";
+    }
+    vd.classList.add("show");
+  },2800);
+};
+window.closePresentation=()=>{
+  presClearTimers();
+  presOpen=false;
+  const root=document.getElementById("presentation");
+  root.classList.remove("visible");
+  root.setAttribute("aria-hidden","true");
+  setTimeout(()=>{if(!presOpen) root.classList.remove("show");},450);
+};
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&presOpen) closePresentation(); });
 
 // 「投票を開始」は、受付中の質問と入力欄が同じ内容のときだけ無効にする
 function updateOpenButtons(){
@@ -1114,7 +1344,7 @@ function generateQR(){
   document.getElementById("qrUrl").textContent=url;
   const el=document.getElementById("qrcode");
   el.innerHTML="";
-  new QRCode(el,{text:url,width:168,height:168,colorDark:"#000",colorLight:"#fff"});
+  new QRCode(el,{text:url,width:320,height:320,colorDark:"#000",colorLight:"#fff"});
   document.getElementById("copyUrlBtn").onclick=()=>{
     navigator.clipboard.writeText(url).then(()=>showToast("URLをコピーしました"));
   };
