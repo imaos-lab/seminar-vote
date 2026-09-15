@@ -344,6 +344,21 @@ body{font-family:var(--font);font-size:17px;font-weight:400;line-height:1.47;
   border:1px solid var(--hairline);cursor:default;opacity:.5;}
 .vote-feedback{font-size:17px;font-weight:400;letter-spacing:-0.374px;
   color:var(--ink-48);margin-top:var(--sp-xl);min-height:26px;text-align:center;}
+.vote-feedback--answer{font-size:24px;font-weight:600;}
+.voter-banner{display:none;align-items:center;gap:8px;padding:8px 18px;border-radius:var(--r-pill);
+  font-size:15px;font-weight:600;letter-spacing:-0.2px;margin-bottom:var(--sp-lg);}
+.voter-banner--closed{display:inline-flex;background:rgba(255,59,48,.1);color:#c0392b;border:1px solid rgba(255,59,48,.3);}
+.voter-banner--new{display:inline-flex;background:rgba(52,199,89,.18);color:#34c759;border:1px solid rgba(52,199,89,.45);}
+.voter-question--closed{color:var(--ink-48);font-size:28px;font-weight:600;}
+.voter-question--new{animation:qPop .6s cubic-bezier(.2,.8,.2,1);}
+@keyframes qPop{0%{transform:scale(.92);opacity:0;}60%{transform:scale(1.03);opacity:1;}100%{transform:none;}}
+.voter-hint{font-size:14px;color:var(--ink-48);margin-top:var(--sp-lg);line-height:1.6;max-width:420px;letter-spacing:-0.224px;}
+.voter-tile--dark .voter-hint{color:var(--muted-dark);}
+.conn-banner{position:fixed;top:44px;left:0;right:0;z-index:950;background:#ff9f0a;color:#1d1d1f;
+  font-size:14px;padding:8px 16px;text-align:center;display:none;letter-spacing:-0.224px;}
+.conn-banner.show{display:block;}
+.conn-banner button{margin-left:10px;background:#1d1d1f;color:#fff;border:none;border-radius:var(--r-pill);
+  padding:4px 12px;font-family:var(--font);font-size:13px;cursor:pointer;}
 
 /* ── Toast ── */
 .toast{position:fixed;bottom:var(--sp-xxl);left:50%;transform:translateX(-50%);
@@ -373,6 +388,7 @@ body{font-family:var(--font);font-size:17px;font-weight:400;line-height:1.47;
   .nav-links{display:none;}
   .vote-btn{width:140px;height:140px;font-size:28px;}
   .voter-question{font-size:28px;}
+  .voter-question--closed{font-size:22px;}
   .result-number{font-size:56px;}
 }
 @media(max-width:640px){
@@ -694,15 +710,22 @@ body{font-family:var(--font);font-size:17px;font-weight:400;line-height:1.47;
     </div>
   </nav>
   <div class="voter-tile tile--light" id="voterTile">
+    <div class="voter-banner" id="voterBanner"></div>
     <div id="voterQ" class="voter-question voter-question--waiting">
       主催者が質問を開始するまで<br>お待ちください
     </div>
-    <div class="vote-btn-row">
+    <div class="vote-btn-row" id="voteRow" style="display:none;">
       <button id="btnYes" class="vote-btn vote-btn--yes" onclick="castVote('yes')" disabled>YES</button>
       <button id="btnNo"  class="vote-btn vote-btn--no"  onclick="castVote('no')"  disabled>NO</button>
     </div>
     <p class="vote-feedback" id="voteFeedback"></p>
+    <p class="voter-hint" id="voterHint"></p>
   </div>
+</div>
+
+<div class="conn-banner" id="connBanner">
+  接続が切れました。再接続しています…
+  <button onclick="location.reload()">再読み込み</button>
 </div>
 
 <!-- ── PRESENTATION (result reveal) ─────────────────────── -->
@@ -1375,31 +1398,48 @@ function renderHistory(){
   updateHistorySelection();
 }
 
+// 参加者画面は Firebase の更新で自動的に切り替わる（QRの再読み取りは不要）
+// 状態: 受付中（質問＋YES/NO） / 締切済み（締切バナー＋自分の回答） / 質問なし（待機）
+let voterShownId=null;
 function renderVoter(){
-  const v=vote;
-  const chip=document.getElementById("voterStatus");
+  const v=vote, hasQ=!!(v.question&&v.id);
+  const $=id=>document.getElementById(id);
+  const chip=$("voterStatus");
   chip.className="status-chip status-chip--"+(v.open?"open":"closed");
   chip.innerHTML=`<span class="status-dot"></span>${v.open?"投票受付中":"受付停止中"}`;
 
-  const nd=document.getElementById("voterNameDisplay");
+  const nd=$("voterNameDisplay");
   if(nd) nd.textContent=voterName?`参加者：${voterName} ✎`:"";
 
-  const tile=document.getElementById("voterTile");
-  tile.className="voter-tile "+(v.open?"tile--dark":"tile--light");
+  $("voterTile").className="voter-tile "+(v.open?"tile--dark":"tile--light");
 
-  const qEl=document.getElementById("voterQ");
-  if(v.open&&v.question){
+  const banner=$("voterBanner"), qEl=$("voterQ"), row=$("voteRow"), hint=$("voterHint");
+  const isNew=v.open&&v.id!==voterShownId;
+  if(v.open&&hasQ){
+    if(hasVoted){ banner.className="voter-banner"; banner.textContent=""; }
+    else { banner.className="voter-banner voter-banner--new"; banner.textContent="新しい質問です。YES / NO で回答してください"; }
     qEl.textContent=v.question;
-    qEl.className="voter-question";
+    qEl.className="voter-question"+(isNew?" voter-question--new":"");
+    row.style.display="flex";
+    hint.textContent="";
+    if(isNew&&navigator.vibrate){ try{navigator.vibrate(80);}catch(e){} }
+  } else if(hasQ){
+    banner.className="voter-banner voter-banner--closed"; banner.textContent="■ 投票を締め切りました";
+    qEl.textContent=v.question;
+    qEl.className="voter-question voter-question--closed";
+    row.style.display="none";
+    hint.textContent="次の質問が始まると自動で切り替わります。この画面のままお待ちください（QRコードの再読み取りは不要です）。";
   } else {
+    banner.className="voter-banner"; banner.textContent="";
     qEl.innerHTML="主催者が質問を開始するまで<br>お待ちください";
     qEl.className="voter-question voter-question--waiting";
-    if(!v.open){hasVoted=false;votedType=null;}
+    row.style.display="none";
+    hint.textContent="質問が始まると自動で表示されます。この画面のままお待ちください。";
   }
+  voterShownId=v.id;
 
   const canVote=v.open&&!hasVoted;
-  const btnYes=document.getElementById("btnYes");
-  const btnNo=document.getElementById("btnNo");
+  const btnYes=$("btnYes"), btnNo=$("btnNo");
   if(hasVoted){
     btnYes.disabled=true; btnNo.disabled=true;
     btnYes.className="vote-btn "+(votedType==="yes"?"vote-btn--yes":"vote-btn--muted");
@@ -1410,14 +1450,34 @@ function renderVoter(){
     btnNo.className ="vote-btn vote-btn--no";
   }
 
-  const fb=document.getElementById("voteFeedback");
-  if(hasVoted&&votedType){
+  const fb=$("voteFeedback");
+  fb.className="vote-feedback";
+  if(hasVoted&&votedType&&v.open){
     fb.textContent=votedType==="yes"
       ?"YESで投票しました。ありがとうございました。"
       :"NOで投票しました。ありがとうございました。";
     fb.style.color=votedType==="yes"?"#34c759":"#ff3b30";
+  } else if(hasQ&&!v.open){
+    fb.className="vote-feedback vote-feedback--answer";
+    if(hasVoted&&votedType){
+      fb.textContent=`あなたの回答：${votedType==="yes"?"YES":"NO"}`;
+      fb.style.color=votedType==="yes"?"#34c759":"#ff3b30";
+    } else {
+      fb.textContent="この質問には回答していません";
+      fb.style.color="var(--ink-48)";
+    }
   } else { fb.textContent=""; }
 }
+
+// ── Connection watchdog ───────────────────────────
+let everConnected=false, connTimer=null;
+onValue(ref(db,".info/connected"), snap=>{
+  const connected=!!snap.val();
+  const b=document.getElementById("connBanner");
+  clearTimeout(connTimer);
+  if(connected){ everConnected=true; b.classList.remove("show"); }
+  else if(everConnected){ connTimer=setTimeout(()=>b.classList.add("show"),2500); }
+});
 
 function generateQR(){
   const url=location.href.split("?")[0]+"?mode=voter";
