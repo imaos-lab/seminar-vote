@@ -389,6 +389,7 @@ body{font-family:var(--font);font-size:17px;font-weight:400;line-height:1.47;
   .vote-btn{width:140px;height:140px;font-size:28px;}
   .voter-question{font-size:28px;}
   .voter-question--closed{font-size:22px;}
+  .voter-question--waiting{font-size:22px;white-space:nowrap;}
   .result-number{font-size:56px;}
 }
 @media(max-width:640px){
@@ -712,7 +713,7 @@ body{font-family:var(--font);font-size:17px;font-weight:400;line-height:1.47;
   <div class="voter-tile tile--light" id="voterTile">
     <div class="voter-banner" id="voterBanner"></div>
     <div id="voterQ" class="voter-question voter-question--waiting">
-      主催者が質問を開始するまで<br>お待ちください
+      質問を開始するまで<br>お待ちください
     </div>
     <div class="vote-btn-row" id="voteRow" style="display:none;">
       <button id="btnYes" class="vote-btn vote-btn--yes" onclick="castVote('yes')" disabled>YES</button>
@@ -1428,13 +1429,13 @@ function renderVoter(){
     qEl.textContent=v.question;
     qEl.className="voter-question voter-question--closed";
     row.style.display="none";
-    hint.textContent="次の質問が始まると自動で切り替わります。この画面のままお待ちください（QRコードの再読み取りは不要です）。";
+    hint.innerHTML="次の質問が始まると自動で切り替わります。<br>この画面のままお待ちください。<br>（QRコードの再読み取りは不要です。）";
   } else {
     banner.className="voter-banner"; banner.textContent="";
-    qEl.innerHTML="主催者が質問を開始するまで<br>お待ちください";
+    qEl.innerHTML="質問を開始するまで<br>お待ちください";
     qEl.className="voter-question voter-question--waiting";
     row.style.display="none";
-    hint.textContent="質問が始まると自動で表示されます。この画面のままお待ちください。";
+    hint.innerHTML="質問が始まると自動で表示されます。<br>この画面のままお待ちください。";
   }
   voterShownId=v.id;
 
@@ -1453,9 +1454,7 @@ function renderVoter(){
   const fb=$("voteFeedback");
   fb.className="vote-feedback";
   if(hasVoted&&votedType&&v.open){
-    fb.textContent=votedType==="yes"
-      ?"YESで投票しました。ありがとうございました。"
-      :"NOで投票しました。ありがとうございました。";
+    fb.innerHTML=(votedType==="yes"?"YESで投票しました。":"NOで投票しました。")+"<br>集計をお待ちください。";
     fb.style.color=votedType==="yes"?"#34c759":"#ff3b30";
   } else if(hasQ&&!v.open){
     fb.className="vote-feedback vote-feedback--answer";
